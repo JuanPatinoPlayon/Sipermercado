@@ -1,4 +1,4 @@
-﻿package co.iudigital.supermercado;
+package co.iudigital.supermercado;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +9,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/main-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/inicio_view.fxml"));
         Scene scene = new Scene(loader.load());
         stage.setTitle("Supermercado La Economía - EA2");
         stage.setScene(scene);

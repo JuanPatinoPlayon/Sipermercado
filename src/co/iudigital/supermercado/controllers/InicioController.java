@@ -1,4 +1,4 @@
-﻿package co.iudigital.supermercado.controllers;
+package co.iudigital.supermercado.controllers;
 
 import co.iudigital.supermercado.model.*;
 import co.iudigital.supermercado.service.SimulacionService;
@@ -16,78 +16,134 @@ import java.util.Optional;
 public class InicioController {
 
     @FXML private Button btnIniciar;
-    @FXML private Button btnRegistrarCliente;
     @FXML private TextArea consolaSalida;
-
-    private final List<Cliente> clientes = new ArrayList<>();
 
     @FXML
     public void initialize() {
         consolaSalida.setWrapText(true);
-        btnRegistrarCliente.setOnAction(e -> registrarClienteDialog());
         btnIniciar.setOnAction(e -> iniciarSimulacion());
     }
 
-    private void registrarClienteDialog() {
+    private void iniciarSimulacion() {
         try {
-            String nombre = pedirTexto("Registrar cliente", "Nombre del cliente:");
-            if (nombre.isBlank()) return;
+            appendLog("\n========== INICIANDO NUEVA SIMULACIÓN ==========");
+            
+            // Paso 1: Solicitar número de clientes simultáneos
+            Integer numClientesSimultaneos = pedirEnteroConCancelacion("Clientes simultáneos", 
+                    "¿Cuántos clientes se procesarán simultáneamente?", 3);
+            
+            if (numClientesSimultaneos == null) {
+                appendLog("Simulación cancelada por el usuario.");
+                return;
+            }
+            
+            if (numClientesSimultaneos <= 0) {
+                mostrarAlerta("Error", "Debe ingresar al menos 1 cliente.");
+                return;
+            }
+            
+            // Paso 2: Solicitar tipo de asignación
+            String asignacionInput = pedirTextoConCancelacion("Asignación de cajeras", 
+                    "¿Asignar cajeras aleatoriamente? (s/n, default: n)");
+            
+            if (asignacionInput == null) {
+                appendLog("Simulación cancelada por el usuario.");
+                return;
+            }
+            
+            boolean asignacionAleatoria = asignacionInput.toLowerCase().equals("s") || 
+                                         asignacionInput.toLowerCase().equals("si");
 
-            int cantidadProd = pedirEntero("Productos", "¿Cuántos productos comprará " + nombre + "?", 1);
-            List<Producto> productos = new ArrayList<>();
+            appendLog("Clientes simultáneos: " + numClientesSimultaneos);
+            appendLog("Asignación de cajeras: " + (asignacionAleatoria ? "Aleatoria" : "Round-Robin"));
+            appendLog("\n--- REGISTRO DE CLIENTES QUE LLEGAN A LA TIENDA ---\n");
 
-            for (int i = 1; i <= cantidadProd; i++) {
-                String nombreP = pedirTexto("Producto " + i, "Nombre del producto " + i + ":");
-                double precio = pedirDouble("Precio", "Precio unitario de " + nombreP + " (ej: 3500.0):");
-                int cantidad = pedirEntero("Cantidad", "Cantidad de " + nombreP + ":", 1);
-                long tiempoProc = pedirEntero("Tiempo (ms)", "Tiempo ms por unidad para " + nombreP + " (ej: 200):", 200);
-                productos.add(new Producto(nombreP, precio, cantidad, tiempoProc));
+            // Paso 3: Registrar cada cliente que "llega"
+            List<Cliente> clientes = new ArrayList<>();
+            
+            for (int i = 1; i <= numClientesSimultaneos; i++) {
+                appendLog("--- Cliente " + i + " de " + numClientesSimultaneos + " ---");
+                
+                // Nombre del cliente
+                String nombreCliente = pedirTextoConCancelacion("Cliente " + i, "Nombre del cliente " + i + ":");
+                if (nombreCliente == null) {
+                    appendLog("Simulación cancelada por el usuario.");
+                    return;
+                }
+                if (nombreCliente.isBlank()) {
+                    nombreCliente = "Cliente " + i;
+                }
+                
+                // Cantidad de productos
+                Integer cantidadProd = pedirEnteroConCancelacion("Productos", 
+                        "¿Cuántos productos comprará " + nombreCliente + "?", 1);
+                
+                if (cantidadProd == null) {
+                    appendLog("Simulación cancelada por el usuario.");
+                    return;
+                }
+                
+                List<Producto> productos = new ArrayList<>();
+                
+                // Registrar productos del cliente
+                for (int j = 1; j <= cantidadProd; j++) {
+                    String nombreProducto = pedirTextoConCancelacion("Producto " + j, 
+                            "Nombre del producto " + j + " de " + nombreCliente + ":");
+                    
+                    if (nombreProducto == null) {
+                        appendLog("Simulación cancelada por el usuario.");
+                        return;
+                    }
+                    
+                    if (nombreProducto.isBlank()) {
+                        nombreProducto = "Producto " + j;
+                    }
+                    
+                    Double precio = pedirDoubleConCancelacion("Precio", 
+                            "Precio unitario de " + nombreProducto + " (ej: 3500.0):");
+                    
+                    if (precio == null) {
+                        appendLog("Simulación cancelada por el usuario.");
+                        return;
+                    }
+                    
+                    if (precio <= 0) precio = 1000.0;
+                    
+                    Integer cantidad = pedirEnteroConCancelacion("Cantidad", 
+                            "Cantidad de " + nombreProducto + ":", 1);
+                    
+                    if (cantidad == null) {
+                        appendLog("Simulación cancelada por el usuario.");
+                        return;
+                    }
+                    
+                    // Tiempo de procesamiento fijo (200ms por defecto)
+                    long tiempoProc = 200;
+                    
+                    productos.add(new Producto(nombreProducto, precio, cantidad, tiempoProc));
+                }
+                
+                clientes.add(new Cliente(nombreCliente, productos));
+                appendLog("✓ Cliente " + nombreCliente + " registrado con " + cantidadProd + " productos.\n");
             }
 
-            clientes.add(new Cliente(nombre, productos));
-            appendLog("Cliente registrado: " + nombre + " | Productos: " + productos.size());
-        } catch (Exception ex) {
-            mostrarError("Error registrar cliente", ex.getMessage());
-        }
-    }
+            // Paso 4: Ejecutar simulación automáticamente
+            appendLog("\n" + "=".repeat(60));
+            appendLog("INICIANDO PROCESAMIENTO DE COMPRAS...");
+            appendLog("=".repeat(60) + "\n");
 
-    private void iniciarSimulacion() {
-        if (clientes.isEmpty()) {
-            mostrarAlerta("No hay clientes", "Primero registra al menos 1 cliente.");
-            return;
-        }
-
-        try {
-            int numCajeras = 3; // por defecto como pediste
             SimulacionService simulacion = new SimulacionService(this::appendLog);
+            
             // Ejecutar en hilo aparte para no bloquear la UI
             new Thread(() -> {
                 try {
-                    long start = System.nanoTime();
-                    List<RegistroCompra> resultados = simulacion.ejecutar(clientes, numCajeras, false); // cajeras fijas
-                    long end = System.nanoTime();
-                    long wallMs = (end - start) / 1_000_000;
-
-                    StringBuilder resumen = new StringBuilder("\n===== RESUMEN FINAL =====\n");
-                    double totalGeneral = 0;
-                    long acumuladoMs = 0;
-                    for (RegistroCompra r : resultados) {
-                        resumen.append(String.format("\nCliente: %s (Cajera: %d)\n", r.getNombreCliente(), r.getCajeraId()));
-                        for (DetalleProcesoProducto d : r.getDetalles()) {
-                            resumen.append(String.format("  - %s x%d => %.2f (tiempo: %d ms)\n",
-                                    d.getProducto().getNombre(), d.getProducto().getCantidad(), d.getProducto().total(), d.getTiempoMs()));
-                        }
-                        resumen.append(String.format("Total cliente: %.2f | Tiempo: %d ms\n", r.getTotalCompra(), r.getTiempoTotalMs()));
-                        totalGeneral += r.getTotalCompra();
-                        acumuladoMs += r.getTiempoTotalMs();
-                    }
-                    resumen.append(String.format("\nTiempo real (wall-clock) de la simulación: %d ms\n", wallMs));
-                    resumen.append(String.format("Suma tiempos por cliente (acumulado): %d ms\n", acumuladoMs));
-                    resumen.append(String.format("Costo total (todas las compras): %.2f\n", totalGeneral));
-
-                    appendLog("\n" + resumen.toString());
-                    // Limpiar clientes para nueva simulación si se desea
-                    clientes.clear();
+                    List<RegistroCompra> resultados = simulacion.ejecutar(
+                            new ArrayList<>(clientes),
+                            numClientesSimultaneos, 
+                            asignacionAleatoria
+                    );
+                    
+                    appendLog("\n✓ Simulación completada exitosamente.");
                 } catch (Exception ex) {
                     appendLog("Error en simulación: " + ex.getMessage());
                     ex.printStackTrace();
@@ -99,23 +155,28 @@ public class InicioController {
         }
     }
 
-    private String pedirTexto(String titulo, String mensaje) {
+    private String pedirTextoConCancelacion(String titulo, String mensaje) {
         TextInputDialog dlg = new TextInputDialog();
         dlg.setTitle(titulo);
         dlg.setHeaderText(null);
         dlg.setContentText(mensaje);
         Optional<String> res = dlg.showAndWait();
-        return res.orElse("").trim();
+        if (res.isEmpty()) {
+            return null; // Usuario canceló
+        }
+        return res.get().trim();
     }
 
-    private int pedirEntero(String titulo, String mensaje, int defecto) {
-        String t = pedirTexto(titulo, mensaje + " (defecto: " + defecto + ")");
+    private Integer pedirEnteroConCancelacion(String titulo, String mensaje, int defecto) {
+        String t = pedirTextoConCancelacion(titulo, mensaje + " (defecto: " + defecto + ")");
+        if (t == null) return null; // Usuario canceló
         if (t.isBlank()) return defecto;
         try { return Integer.parseInt(t); } catch (NumberFormatException ex) { return defecto; }
     }
 
-    private double pedirDouble(String titulo, String mensaje) {
-        String t = pedirTexto(titulo, mensaje);
+    private Double pedirDoubleConCancelacion(String titulo, String mensaje) {
+        String t = pedirTextoConCancelacion(titulo, mensaje);
+        if (t == null) return null; // Usuario canceló
         if (t.isBlank()) return 0.0;
         try { return Double.parseDouble(t); } catch (NumberFormatException ex) { return 0.0; }
     }

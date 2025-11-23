@@ -1,4 +1,4 @@
-﻿package co.iudigital.supermercado.model;
+package co.iudigital.supermercado.model;
 
 public class Producto {
     private final String nombre;

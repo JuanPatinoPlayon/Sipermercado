@@ -1,0 +1,16 @@
+co\iudigital\supermercado\model\DetalleProcesoProducto.class
+co\iudigital\supermercado\controllers\ClienteController.class
+co\iudigital\supermercado\controllers\InicioController.class
+co\iudigital\supermercado\service\CajeraService.class
+co\iudigital\supermercado\threads\HiloCajera.class
+co\iudigital\supermercado\model\Compra.class
+co\iudigital\supermercado\model\Cajera.class
+co\iudigital\supermercado\service\ClienteService.class
+co\iudigital\supermercado\Main.class
+co\iudigital\supermercado\controllers\ProductoController.class
+co\iudigital\supermercado\model\RegistroCompra.class
+co\iudigital\supermercado\App.class
+co\iudigital\supermercado\model\Cliente.class
+co\iudigital\supermercado\model\Producto.class
+co\iudigital\supermercado\service\ProductoService.class
+co\iudigital\supermercado\service\SimulacionService.class

@@ -31,6 +31,16 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/resources</directory>
+            </resource>
+            <resource>
+                <directory>resources</directory>
+            </resource>
+        </resources>
+        
         <plugins>
 
             <!-- Compilador -->
@@ -49,11 +59,17 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
+                    <mainClass>co.iudigital.supermercado.App</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin para ejecutar Main (consola) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
                     <mainClass>co.iudigital.supermercado.Main</mainClass>
-                    <modules>
-                        <module>javafx.controls</module>
-                        <module>javafx.fxml</module>
-                    </modules>
                 </configuration>
             </plugin>
 
