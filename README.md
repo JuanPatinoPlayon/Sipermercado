@@ -160,9 +160,12 @@ Tiempo real de simulación (wall-clock time): 450 ms
 - Los resultados se ordenan alfabéticamente por nombre de cliente
 
 ## Autor
+Juan Camilo Patiño Henao
+Julian Daniel Salamanca Borja
+Harold Daniel Velandia Guerrero
 
 Proyecto desarrollado para demostrar conceptos de concurrencia en Java.
 
 ## Licencia
-
+IU Digital De Antioquia
 Este proyecto es de uso educativo.
